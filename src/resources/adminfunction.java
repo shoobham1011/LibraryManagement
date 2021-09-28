@@ -91,3 +91,86 @@ public class AdminFunctions {
         });
 
     }
+    public static void logout() {
+        int n = JOptionPane.showConfirmDialog(null, "Do you want to logout");
+        if (n == JOptionPane.YES_OPTION) {
+            LibMain.frame.dispose();
+            LibMain.frame.setVisible(false);
+            LibMain.mainMenu();
+        }
+
+    }
+
+    public static void showBooks() {
+
+        Connection connection = SQLUtils.connect("root", "");
+        try {
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY);
+            ResultSet set = statement.executeQuery("select * from bookdata");
+            ResultSetMetaData metaData = set.getMetaData();
+            String[] cols = { metaData.getColumnName(1), metaData.getColumnName(2), metaData.getColumnName(3),
+                    metaData.getColumnName(4), metaData.getColumnName(5), metaData.getColumnName(6) };
+
+            set.last();
+            int size = set.getRow();
+            set.beforeFirst();
+
+            String[][] data;
+            data = new String[size][];
+            for (int i = 0; i < size; i++) {
+                data[i] = new String[6];
+            }
+
+            int i = 0;
+            while (set.next()) {
+                data[i][0] = String.valueOf(set.getInt("id"));
+                data[i][1] = set.getString("Name");
+                data[i][2] = set.getString("Author");
+                data[i][3] = set.getString("Genre");
+                data[i][4] = String.valueOf(set.getFloat("Price"));
+                data[i][5] = String.valueOf(set.getInt("Issued"));
+                i++;
+            }
+            connection.close();
+            makeATableBoii(data, cols, "Book Shelf");
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void viewUsers() {
+
+        Connection connection = SQLUtils.connect("root", "");
+        try {
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY);
+            ResultSet set = statement.executeQuery("select * from users");
+            ResultSetMetaData metaData = set.getMetaData();
+            String[] cols = { metaData.getColumnName(1), metaData.getColumnName(2) };
+            set.last();
+            int size = set.getRow();
+            set.beforeFirst();
+
+            String[][] data;
+            data = new String[size][];
+            for (int i = 0; i < size; i++) {
+                data[i] = new String[2];
+            }
+
+            int i = 0;
+            while (set.next()) {
+                data[i][0] = String.valueOf(set.getInt("id"));
+                data[i][1] = set.getString("username");
+                i++;
+            }
+            connection.close();
+            makeATableBoii(data, cols, "Users");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
