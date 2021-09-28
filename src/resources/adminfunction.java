@@ -288,3 +288,73 @@ public class AdminFunctions {
             }
         });
     }
+
+    public static void returnBook() {
+        JFrame returnFrame;
+        returnFrame = LibMain.newJframeWindow("Return Book", 600, 400, JFrame.DISPOSE_ON_CLOSE);
+        JLabel id, Uroll, rDate;
+        JTextField idIN = null, rdateIN = null, UrollIN = null;
+        JButton returnBut = new JButton("Return Book");
+        returnFrame.add(returnBut);
+        returnBut.setBounds(20, 300, 120, 30);
+
+        id = new JLabel("Book Id");
+        Uroll = new JLabel("Issuer roll no");
+        rDate = new JLabel("Date of return");
+
+        JLabel[] lables = { id, Uroll, rDate };
+        String[] lableINPUT = new String[lables.length];
+        JTextField[] inputs = { idIN, UrollIN, rdateIN };
+
+        for (int i = 0; i < inputs.length; i++) {
+            inputs[i] = new JTextField();
+
+            returnFrame.add(inputs[i]);
+        }
+
+        int yoff = 0;
+        for (int i = 0; i < lables.length; i++) {
+
+            lables[i].setBounds(20, 40 + yoff, 120, 20);
+            returnFrame.add(lables[i]);
+            inputs[i].setBounds(150, 40 + yoff, 320, 40);
+            inputs[i].setFont(new Font("Arial",Font.PLAIN,20));
+            yoff += 60;
+        }
+
+        returnBut.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                Connection connection = SQLUtils.connect("root", "");
+                for (int i = 0; i < inputs.length; i++)
+                    lableINPUT[i] = inputs[i].getText();
+
+                try {
+                    Statement statement = connection.createStatement();
+                    ResultSet set = statement.executeQuery("Select * from issuedbookdata where book_id=" + lableINPUT[0]
+                            + " and Issuer_roll_no='" + lableINPUT[1] + "'");
+
+                    if (set.next() == false) {
+                        JOptionPane.showMessageDialog(null, "No book found as per given data", "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        SQLUtils.insertToTable(connection,
+                                "insert into returnedbookData(Book_id,issuer_roll_no,issue_date,return_date) values('"
+                                        + lableINPUT[0] + "','" + lableINPUT[1] + "','" + set.getDate("issue_date")
+                                        + "','" + lableINPUT[2] + "')");
+                        statement.executeUpdate("delete from issuedbookdata where book_id=" + set.getInt("Book_id"));
+                        JOptionPane.showMessageDialog(null, "Book returned");
+                        connection.close();
+                        System.out.println("Connection closed");
+                        statement.close();
+                    }
+                } catch (SQLException e1) {
+
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+    }
