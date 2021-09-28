@@ -53,3 +53,22 @@ public class LibMain {
         }
 
     }
+    public static void newFrame(String title, int w, int h) {
+        frame = new JFrame(title);
+        frame.setSize(w, h);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    }
+
+    public static JFrame newJframeWindow(String title, int w, int h, int closeop) {
+        JFrame iframe = new JFrame(title);
+        iframe.setSize(w, h);
+        iframe.setDefaultCloseOperation(closeop);
+        iframe.setLayout(null);
+        iframe.setVisible(true);
+        iframe.setLocationRelativeTo(null);
+        return iframe;
+    }
+
+}
