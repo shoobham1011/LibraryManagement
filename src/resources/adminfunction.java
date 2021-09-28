@@ -358,3 +358,62 @@ public class AdminFunctions {
         });
 
     }
+    public static void viewReturnedBooks() {
+        Connection connection = SQLUtils.connect("root", "");
+        try {
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY);
+            ResultSet set = statement.executeQuery("select * from returnedBookdata");
+            ResultSetMetaData metaData = set.getMetaData();
+
+            String[] cols = { metaData.getColumnName(1), metaData.getColumnName(2), metaData.getColumnName(3),
+                    metaData.getColumnName(4), metaData.getColumnName(5) };
+
+            set.last();
+            int size = set.getRow();
+            set.beforeFirst();
+
+            String[][] data;
+            data = new String[size][];
+            for (int i = 0; i < size; i++) {
+                data[i] = new String[6];
+            }
+
+            int i = 0;
+            while (set.next()) {
+                data[i][0] = String.valueOf(set.getInt("s_no"));
+                data[i][1] = String.valueOf(set.getInt("Book_id"));
+                data[i][2] = set.getString("Issuer_roll_no");
+                data[i][3] = String.valueOf(set.getDate("Issue_date"));
+                data[i][4] = String.valueOf(set.getDate("Return_date"));
+                i++;
+            }
+            connection.close();
+
+            makeATableBoii(data, cols, "Returned Books");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void refresh() {
+        Connection connection = SQLUtils.connect("root", "");
+        try {
+            CallableStatement statement=connection.prepareCall("{call refreshBookData()}");
+            statement.executeQuery();
+            statement=connection.prepareCall("{call refreshIssuedBookData()}");
+            statement.executeQuery();
+            statement=connection.prepareCall("{call refreshReturnedBookData()}");
+            statement.executeQuery();
+            statement.close();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
+}
+
