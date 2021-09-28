@@ -174,3 +174,117 @@ public class AdminFunctions {
         }
 
     }
+    public static void viewIssuedBooks() {
+        Connection connection = SQLUtils.connect("root", "");
+        try {
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY);
+            ResultSet set = statement.executeQuery("select * from issuedBookdata");
+            ResultSetMetaData metaData = set.getMetaData();
+
+            String[] cols = { metaData.getColumnName(1), metaData.getColumnName(2), metaData.getColumnName(3),
+                    metaData.getColumnName(4), metaData.getColumnName(5), metaData.getColumnName(6) };
+
+            set.last();
+            int size = set.getRow();
+            set.beforeFirst();
+
+            String[][] data;
+            data = new String[size][];
+            for (int i = 0; i < size; i++) {
+                data[i] = new String[6];
+            }
+
+            int i = 0;
+            while (set.next()) {
+                data[i][0] = String.valueOf(set.getInt("s_no"));
+                data[i][1] = String.valueOf(set.getInt("Book_id"));
+                data[i][2] = set.getString("Book_name");
+                data[i][3] = set.getString("Issuer_roll_no");
+                data[i][4] = set.getString("Issuer_name");
+                data[i][5] = String.valueOf(set.getDate("Issue_date"));
+                i++;
+            }
+            connection.close();
+            makeATableBoii(data, cols, "Issued Books");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void issueBook() {
+        JFrame issueFrame;
+        issueFrame = LibMain.newJframeWindow("Issue Book", 600, 400, JFrame.DISPOSE_ON_CLOSE);
+        JLabel id, Uroll, Uname, iDate;
+        JTextField idIN = null, UrollIN = null, UnameIN = null, idateIN = null;
+        JButton issue = new JButton("Issue Book");
+        issueFrame.add(issue);
+        issue.setBounds(20, 300, 120, 30);
+
+        id = new JLabel("Book Id");
+        Uroll = new JLabel("issuer roll no");
+        Uname = new JLabel("issuer Name");
+        iDate = new JLabel("Date of issue");
+
+        JLabel[] lables = { id, Uroll, Uname, iDate };
+        String[] lableINPUT = new String[lables.length];
+        JTextField[] inputs = { idIN, UrollIN, UnameIN, idateIN };
+
+        for (int i = 0; i < inputs.length; i++) {
+            inputs[i] = new JTextField();
+
+            issueFrame.add(inputs[i]);
+        }
+
+        int yoff = 0;
+        for (int i = 0; i < lables.length; i++) {
+
+            lables[i].setBounds(20, 40 + yoff, 120, 20);
+            issueFrame.add(lables[i]);
+            inputs[i].setBounds(150, 40 + yoff, 320, 40);
+            inputs[i].setFont(new Font("Arial",Font.PLAIN,20));
+            yoff += 60;
+        }
+
+        issue.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                Connection connection = SQLUtils.connect("root", "");
+                for (int i = 0; i < inputs.length; i++)
+                    lableINPUT[i] = inputs[i].getText();
+
+                try {
+                    Statement statement = connection.createStatement();
+                    ResultSet set = statement.executeQuery("Select * from bookdata where id=" + lableINPUT[0]);
+
+                    if (set.next() == false) {
+                        JOptionPane.showMessageDialog(null, "No book found as per given data", "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        String Bname = set.getString("Name");
+                        int issue = set.getInt("Issued");
+                        SQLUtils.insertToTable(connection,
+                                "insert into issuedbookData(book_id,Book_Name,issuer_roll_no,issuer_name,issue_date) values('"
+                                        + lableINPUT[0] + "','" + Bname + "','" + lableINPUT[1] + "','" + lableINPUT[2]
+                                        + "','" + lableINPUT[3] + "')");
+                        JOptionPane.showMessageDialog(null, "Book Issued To user");
+                        issue++;
+                        SQLUtils.insertToTable(connection,
+                                "update bookdata set issued =" + issue + " where id=" + lableINPUT[0]);
+                        System.out.println(
+                                "insert into bookdata(issued) values(" + issue + ") where id=" + lableINPUT[0]);
+                        connection.close();
+                        System.out.println("Connection closed");
+                        statement.close();
+                    }
+                } catch (SQLException e1) {
+
+                    e1.printStackTrace();
+                }
+            }
+        });
+    }
